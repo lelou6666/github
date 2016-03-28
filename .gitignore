@@ -1,3 +1,11 @@
 .DS_Store
+<<<<<<< HEAD
 node_modules/
 npm-debug.log
+=======
+.idea
+node_modules/
+npm-debug.log
+coverage/
+sauce.json
+>>>>>>> refs/remotes/michael/master
