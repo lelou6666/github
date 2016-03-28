@@ -1,20 +1,11 @@
 'use strict';
 
+var Github = require('../src/github.js');
+var testUser = require('./user.json');
 var github;
-
-if (typeof window === 'undefined') {
-   // Module dependencies
-   var chai = require('chai');
-   var Github = require('../');
-   var testUser = require('./user.json');
-
-   // Use should flavour for Mocha
-   var should = chai.should();
-}
 
 describe('Github.Search', function() {
    before(function() {
-      if (typeof window !== 'undefined') testUser = window.__fixtures__['test/user'];
       github = new Github({
          username: testUser.USERNAME,
          password: testUser.PASSWORD,
@@ -26,8 +17,10 @@ describe('Github.Search', function() {
       var search = github.getSearch('tetris+language:assembly&sort=stars&order=desc');
       var options = null;
 
-      search.repositories(options, function (err) {
+      search.repositories(options, function (err, res, xhr) {
          should.not.exist(err);
+         xhr.should.be.instanceof(XMLHttpRequest);
+
          done();
       });
    });
@@ -36,8 +29,10 @@ describe('Github.Search', function() {
       var search = github.getSearch('addClass+in:file+language:js+repo:jquery/jquery');
       var options = null;
 
-      search.code(options, function (err) {
+      search.code(options, function (err, res, xhr) {
          should.not.exist(err);
+         xhr.should.be.instanceof(XMLHttpRequest);
+
          done();
       });
    });
@@ -46,8 +41,10 @@ describe('Github.Search', function() {
       var search = github.getSearch('windows+label:bug+language:python+state:open&sort=created&order=asc');
       var options = null;
 
-      search.issues(options, function (err) {
+      search.issues(options, function (err, res, xhr) {
          should.not.exist(err);
+         xhr.should.be.instanceof(XMLHttpRequest);
+
          done();
       });
    });
@@ -56,8 +53,10 @@ describe('Github.Search', function() {
       var search = github.getSearch('tom+repos:%3E42+followers:%3E1000');
       var options = null;
 
-      search.users(options, function (err) {
+      search.users(options, function (err, res, xhr) {
          should.not.exist(err);
+         xhr.should.be.instanceof(XMLHttpRequest);
+
          done();
       });
    });

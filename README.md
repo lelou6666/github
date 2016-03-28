@@ -1,6 +1,6 @@
 # Github.js
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michael/github?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)[![Stories in Ready](https://badge.waffle.io/michael/github.png?label=ready&title=Ready)](https://waffle.io/michael/github)[![Build Status](https://travis-ci.org/darvin/github.svg?branch=master)](https://travis-ci.org/darvin/github)[![codecov.io](https://codecov.io/github/michael/github/coverage.svg?branch=master)](https://codecov.io/github/michael/github?branch=master)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/michael/github?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Stories in Ready](https://badge.waffle.io/michael/github.png?label=ready&title=Ready)](https://waffle.io/michael/github) [![Build Status](https://travis-ci.org/michael/github.svg?branch=master)](https://travis-ci.org/michael/github) [![codecov.io](https://codecov.io/github/michael/github/coverage.svg?branch=master)](https://codecov.io/github/michael/github?branch=master)
 
 Github.js provides a minimal higher-level wrapper around git's [plumbing commands](http://git-scm.com/book/en/Git-Internals-Plumbing-and-Porcelain), exposing an API for manipulating GitHub repositories on the file level. It was formerly developed in the context of [Prose](http://prose.io), a content editor for GitHub.
 
@@ -21,6 +21,20 @@ bower install github-api
 ## Compatibility
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/githubjs.svg)](https://saucelabs.com/u/githubjs)
+
+**Note**: Starting from version 0.10.8, Github.js supports **Internet Explorer 9**. However, the underlying
+methodology used under the hood to perform CORS requests (the `XDomainRequest` object),
+[has limitations](http://blogs.msdn.com/b/ieinternals/archive/2010/05/13/xdomainrequest-restrictions-limitations-and-workarounds.aspx).
+In particular, requests must be targeted to the same scheme as the hosting page. This means that if a page is at
+http://example.com, your target URL must also begin with HTTP. Similarly, if your page is at https://example.com, then
+your target URL must also begin with HTTPS. For this reason, if your requests are sent to the GitHub API (the default),
+which are served via HTTPS, your page must use HTTPS too.
+
+## GitHub Tools
+
+The team behind Github.js has created a whole organization, called [GitHub Tools](https://github.com/github-tools),
+dedicated to GitHub and its API. In the near future this repository could be moved under the GitHub Tools organization
+as well. In the meantime, we recommend you to take a look at other projects of the organization.
 
 ## Usage
 
@@ -43,15 +57,23 @@ var github = new Github({
 });
 ```
 
-You can use either:
+Some information, such as public Gists, can be accessed without any authentication. For such use cases, you can create
+a Github instance as follows:
+
+```js
+var github = new Github();
+```
+
+In conclusion, you can use:
 * Authorised App Tokens (via client/secret pairs), used for bigger applications, created in web-flows/on the fly
 * Personal Access Tokens (simpler to set up), used on command lines, scripts etc, created in GitHub web UI
+* No authorization
 
 See these pages for more info:
 
 [Creating an access token for command-line use](https://help.github.com/articles/creating-an-access-token-for-command-line-use)
 
-[Github API OAuth Overview] (http://developer.github.com/v3/oauth)
+[Github API OAuth Overview](http://developer.github.com/v3/oauth)
 
 Enterprise Github instances may be specified using the `apiUrl` option:
 
@@ -93,6 +115,12 @@ Fork repository. This operation runs asynchronously. You may want to poll for `r
 repo.fork(function(err) {});
 ```
 
+List forks.
+
+```js
+repo.listForks(function(err, forks) {});
+```
+
 Create new branch for repo. You can omit oldBranchName to default to "master".
 
 ```js
@@ -131,8 +159,13 @@ Retrieve all available branches (aka heads) of a repository.
 repo.listBranches(function(err, branches) {});
 ```
 
-Store contents at a certain path, where files that don't yet exist are created on the fly.
-You can also provide an optional object literal, (`options` in the example below) containing information about the author and the committer.
+Get list of statuses for a particular commit.
+
+```js
+repo.getStatuses(sha, function(err, statuses) {});
+```
+
+Store content at a certain path. If the file specified in the path exists, the content is updated. If the file doesn't exist, it's created on the fly. You can also provide an optional object literal, (`options` in the example below) containing information about the author and the committer.
 
 ```js
 var options = {
@@ -213,6 +246,44 @@ Get contributors list with additions, deletions, and commit counts.
 repo.contributors(function(err, data) {});
 ```
 
+Check if a repository is starred.
+
+```js
+repo.isStarred(owner, repository, function(err) {});
+```
+
+Star a repository.
+
+```js
+repo.star(owner, repository, function(err) {});
+```
+
+Unstar a repository.
+
+```js
+repo.unstar(owner, repository, function(err) {});
+```
+
+## Organization API
+
+
+```js
+var organization = github.getOrg();
+```
+
+Create a new organization repository for the authenticated user
+
+```js
+var repo = {
+ orgname: 'github-api-tests',
+ name: 'test'
+};
+
+organization.createRepo(repo, function(err, res) {});
+```
+
+The repository description, homepage, private/public can also be set. [For a full list of options see the documentation](https://developer.github.com/v3/repos/#create).
+
 ## User API
 
 
@@ -220,13 +291,14 @@ repo.contributors(function(err, data) {});
 var user = github.getUser();
 ```
 
-List repositories of the authenticated user, including private repositories and repositories in which the user is a collaborator and not an owner.
+List repositories of the authenticated user, including private repositories and repositories in which the user is a
+collaborator and not an owner.
 
 ```js
 user.repos(options, function(err, repos) {});
 ```
 
-List organizations the autenticated user belongs to.
+List organizations the authenticated user belongs to.
 
 ```js
 user.orgs(function(err, orgs) {});
@@ -244,7 +316,8 @@ List unread notifications for the authenticated user.
 user.notifications(options, function(err, notifications) {});
 ```
 
-Show user information for a particular username. Also works for organizations. Pass in a falsy value (null, '', etc) for 'username' to retrieve user information for the currently authorized user.
+Show user information for a particular username. Also works for organizations. Pass in a falsy value (null, '', etc)
+for 'username' to retrieve user information for the currently authorized user.
 
 ```js
 user.show(username, function(err, user) {});
@@ -253,7 +326,7 @@ user.show(username, function(err, user) {});
 List public repositories for a particular user.
 
 ```js
-user.userRepos(username, function(err, repos) {});
+user.userRepos(username, options, function(err, repos) {});
 ```
 
 List starred repositories for a particular user.
@@ -333,10 +406,51 @@ To read all the issues of a given repository
 issues.list(options, function(err, issues) {});
 ```
 
+To create an issue
+
+```js
+var options = {
+  title: "Found a bug",
+  body: "I'm having a problem with this.",
+  assignee: "assignee_username",
+  milestone: 1,
+  labels: [
+    "Label1",
+    "Label2"
+  ]
+};
+
+issues.create(options, function(err, issue) {});
+```
+
 To comment in a issue
 
 ```js
-issues.comment(issue, comment,function(err, comment) {});
+issues.comment(issue, comment, function(err, comment) {});
+```
+
+To edit an issue
+
+```js
+var options = {
+  title: "Found a bug",
+  body: "I'm having a problem with this.",
+  assignee: "assignee_username",
+  milestone: 1,
+  state: "open",
+  labels: [
+    "Label1",
+    "Label2"
+  ]
+};
+
+issues.edit(issue, options, function (err, issue) {});
+```
+
+To get an issue
+
+```js
+issues.get(issue, function (err, issue) {});
 ```
 
 ## Search API
@@ -383,6 +497,17 @@ search.users(options, function (err, users) {});
 
 Here, we’re looking at users with the name Tom. We’re only interested in those with more than 42 repositories, and only if they have over 1,000 followers.
 
+## Rate Limit API
+
+```js
+var rateLimit = github.getRateLimit();
+```
+
+Get the rate limit.
+
+```js
+rateLimit.getRateLimit(function (err, rateInfo) {});
+```
 
 ## Change Log
 

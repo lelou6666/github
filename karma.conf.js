@@ -1,11 +1,14 @@
-module.exports = function(config) {
+module.exports = function (config) {
    'use strict';
 
    var configuration = {
+      browserNoActivityTimeout: 30000,
+
       client: {
          captureConsole: true,
          mocha: {
-            timeout: 10000
+            timeout: 30000,
+            ui: 'bdd'
          }
       },
 
@@ -13,18 +16,36 @@ module.exports = function(config) {
 
       autoWatch: false,
 
-      frameworks: ['mocha', 'chai'],
+      frameworks: [
+         'browserify',
+         'mocha',
+         'chai'
+      ],
 
       browsers: ['PhantomJS'],
+
+      browserify: {
+         debug: true,
+         transform: ['browserify-istanbul']
+      },
+
+      phantomjsLauncher: {
+         debug: true,
+         options: {
+            settings: {
+               webSecurityEnabled: false
+            }
+         }
+      },
 
       coverageReporter: {
          reporters: [
             {
-              type: 'lcov'
-           },
-           {
-              type: 'text-summary'
-           }
+               type: 'lcov'
+            },
+            {
+               type: 'text-summary'
+            }
          ],
          instrumenterOptions: {
             istanbul: {
